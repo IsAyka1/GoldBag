@@ -1,6 +1,7 @@
 //
 // Created by mtara on 28.03.2020.
 //
+#include "TOutput.h"
 #include <TFraction.h>m
 #include "TInput.h"
 #include <vector>

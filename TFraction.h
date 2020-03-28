@@ -1,5 +1,5 @@
 //
-// Created by aigul on 28.03.2020.
+// Created by mtara on 28.03.2020.
 //
 
 #ifndef GOLDBAG_TFRACTION_H
