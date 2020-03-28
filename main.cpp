@@ -1,0 +1,14 @@
+//
+// Created by mtara on 28.03.2020.
+//
+
+#include "TInput.h"
+#include <vector>
+
+using std::vector;
+
+int main() {
+    TInput input;
+    auto arr = input.GetData();
+    return 1;
+}
