@@ -16,5 +16,5 @@ int main() {
     auto a = input.GetData();
     TSimplex matrix(a);
     matrix.Algorithm();
-    return 1;
+    return 0;
 }

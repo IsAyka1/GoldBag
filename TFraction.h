@@ -21,6 +21,7 @@ public:
     TFraction operator/(TFraction operand);
     TFraction operator*(TFraction operand);
     bool operator==(TFraction operand);
+    bool operator==(int operand);
     bool operator!=(TFraction operand);
     bool operator<(TFraction operand);
     bool operator>(TFraction operand);
@@ -206,6 +207,16 @@ bool TFraction::operator==(TFraction operand) {
     return (this->Numerator == operand.Numerator) &&
            (this->Denominator == operand.Denominator) &&
            (this->Sign == operand.Sign);
+}
+
+bool TFraction::operator==(int operand) {
+    bool negativ = operand < 0;
+    operand = abs(operand);
+    if (this->Numerator == operand &&
+    this->Denominator == 1 &&
+    this->Sign == negativ)
+        return true;
+    return false;
 }
 
 bool TFraction::operator!=(TFraction operand) {

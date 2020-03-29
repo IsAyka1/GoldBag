@@ -6,6 +6,10 @@
 #define GOLDBAG_TSIMPLEX_H
 #include <utility>
 #include <vector>
+#include "TFraction.h"
+#include <string>
+#include <iostream>
+
 using std::vector;
 using std::string;
 
@@ -35,11 +39,11 @@ private:
 
 TSimplex::TSimplex(vector <vector<TFraction>> matrix)
     : Matrix(std::move(matrix)) {
-    ColCount = matrix.size();
-    RowCount = matrix[0].size();
+    RowCount = Matrix.size();
+    ColCount = Matrix[0].size();
     BasisArray = new string[RowCount - 1]; // minus z
     for(int i = 0; i < RowCount - 1; ++i){
-        BasisArray[i] = "x" +  string(itoa(ColCount - RowCount + i + 1, nullptr, 10));
+        BasisArray[i] = "x" + std::to_string(ColCount - RowCount + i + 1);
     }
 }
 
@@ -54,11 +58,11 @@ TSimplex TSimplex::Algorithm() {
 }
 
 TFraction TSimplex::GetResult() {
-    for(int i = 0; i < ColCount - 1; ++i){
+    for(int i = 0; i < RowCount - 1; ++i){
         std::cout << BasisArray << " = " << Matrix[i][ColCount - 1];
     }
-    std::cout << "z = " << Matrix[ColCount - 1][RowCount - 1];
-    return Matrix[ColCount - 1][RowCount - 1];
+    std::cout << "z = " << Matrix[RowCount - 1][ColCount - 1];
+    return Matrix[RowCount - 1][ColCount - 1];
 }
 
 vector<TFraction> TSimplex::AddEquation() {
@@ -136,9 +140,11 @@ TSimplex TSimplex::NewIterationTable() {
 
 bool TSimplex::IsWhole() {
     for(int i = 0; i < RowCount; ++i) {
-        if(Matrix[ColCount - 1][i].Denominator != 1)
+        if(Matrix[i][ColCount - 1].Denominator != 1)
             return false;
     }
+    if (Matrix[RowCount - 1][ColCount  - 1] == 0)
+        return false;
     return true;
 }
 
@@ -180,7 +186,7 @@ TSimplex TSimplex::NewTable() {
 TFraction TSimplex::FindElem(int& indexRow, int& indexCol) {
     bool twice = false;
     for(int i = 0; i < RowCount; ++i) {
-        if(Matrix[ColCount - 1][i].Sign == 1)
+        if(Matrix[i][ColCount - 1].Sign == 1)
             twice = true; break;
     }
     if(twice){
@@ -191,7 +197,7 @@ TFraction TSimplex::FindElem(int& indexRow, int& indexCol) {
         indexRow = FindStandartRow(indexCol);
     }
     //меняем базисную пременную
-    BasisArray[indexRow] = "x" +  string(itoa(indexCol + 1, nullptr, 10));
+    BasisArray[indexRow] = "x" +  std::to_string(indexCol + 1);
     return Matrix[indexRow][indexCol];
 }
 
