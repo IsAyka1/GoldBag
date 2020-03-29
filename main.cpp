@@ -1,15 +1,20 @@
 //
 // Created by mtara on 28.03.2020.
 //
-#include "TOutput.h"
-#include <TFraction.h>m
-#include "TInput.h"
 #include <vector>
+#include <iostream>
+#include "TOutput.h"
+#include "TFraction.h"
+//#include "TSimplex.h"
+#include "TInput.h"
+
 
 using std::vector;
 
 int main() {
     TInput input;
-    auto arr = input.GetData();
+    auto a = input.GetData();
+    TSimplex matrix(a);
+    matrix.Algorithm();
     return 1;
 }

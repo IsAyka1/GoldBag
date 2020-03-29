@@ -36,8 +36,8 @@ TInput::TInput(string fileName) {
 }
 
 vector<vector<TFraction>> TInput::GetData() {
-    unsigned short int sizeCol;
-    unsigned short int sizeRow;
+    int sizeCol;
+    int sizeRow;
     stream >> sizeCol;
     stream >> sizeRow;
     vector<vector<TFraction>> matrix(sizeCol);
@@ -46,7 +46,7 @@ vector<vector<TFraction>> TInput::GetData() {
         for (auto & sell : row) {
             int tmp;
             stream >> tmp;
-            //sell = tmp;
+            sell = tmp;
         }
     }
     return matrix;

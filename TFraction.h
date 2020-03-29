@@ -6,20 +6,18 @@
 #define GOLDBAG_TFRACTION_H
 
 class TFraction {
+//public:
     int Numerator;// числитель
     int Denominator;// знаменатель
     bool Sign;
 
-    public:
+public:
     TFraction(int numerator, int denominator) ;
     TFraction(int integer);
-    int GetNOD(int a, int b);
-    int GetNOK(int a, int b);
-    void GetSimple();
+    TFraction();
     TFraction operator+(TFraction operand);
-    TFraction operator=(TFraction operand);
-    TFraction operator=(int integer);
     TFraction operator-(TFraction operand);
+    TFraction operator-(int integer);
     TFraction operator/(TFraction operand);
     TFraction operator*(TFraction operand);
     bool operator==(TFraction operand);
@@ -28,8 +26,15 @@ class TFraction {
     bool operator>(TFraction operand);
     bool operator>=(TFraction operand);
     bool operator<=(TFraction operand);
+    TFraction& operator=(TFraction operand);
+    TFraction& operator=(int integer);
+private:
+    int GetNOD(int a, int b);
+    int GetNOK(int a, int b);
+    void GetSimple();
     friend std::ostream& operator<< (std::ostream &out, TFraction fraction);
     friend std::istream& operator>> (std::istream &in, TFraction& fraction);
+    friend class TSimplex;
 };
 
 TFraction::TFraction(int integer) : Numerator(integer), Denominator(1) {
@@ -39,6 +44,10 @@ TFraction::TFraction(int integer) : Numerator(integer), Denominator(1) {
     } else {
         Sign = false;
     }
+}
+
+TFraction::TFraction() : Numerator(0), Denominator(1) {
+        Sign = false;
 }
 
 TFraction::TFraction(int numerator, int denominator)
@@ -118,13 +127,13 @@ std::istream& operator>>(std::istream &in, TFraction& fraction) {
     return in;
 }
 
-TFraction TFraction::operator=(TFraction operand) {
+TFraction& TFraction::operator=(TFraction operand) {
     this->Numerator = operand.Numerator;
     this->Denominator = operand.Denominator;
     return *this;
 }
 
-TFraction TFraction::operator=(int integer) {
+TFraction& TFraction::operator=(int integer) {
     Numerator = integer;
     if(Numerator < 0) {
         Sign = true;
@@ -146,6 +155,19 @@ TFraction TFraction::operator-(TFraction operand) {
     res.Numerator = this->Numerator * k1 - operand.Numerator * k2;
     if(res.Numerator != 0) {
         res.GetSimple();
+    }
+    return res;
+}
+
+TFraction TFraction::operator-(int integer) {
+    TFraction res(0);
+    res.Numerator = this->Numerator - this->Denominator * integer;
+    res.Denominator = this->Denominator;
+    if(res.Numerator < 0) {
+        res.Sign = true;
+        res.Numerator = abs(res.Numerator);
+    } else {
+        res.Sign = false;
     }
     return res;
 }
