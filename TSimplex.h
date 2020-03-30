@@ -17,7 +17,7 @@ class TSimplex {
     vector <vector<TFraction>> Matrix;
     int ColCount;
     int RowCount;
-    std::string *BasisArray;
+    vector<string> BasisArray;
 public:
     TSimplex(vector <vector<TFraction>> matrix);
     TFraction GetResult();
@@ -41,9 +41,8 @@ TSimplex::TSimplex(vector <vector<TFraction>> matrix)
     : Matrix(std::move(matrix)) {
     RowCount = Matrix.size();
     ColCount = Matrix[0].size();
-    BasisArray = new string[RowCount - 1]; // minus z
     for(int i = 0; i < RowCount - 1; ++i){
-        BasisArray[i] = "x" + std::to_string(ColCount - RowCount + i + 1);
+        BasisArray.push_back ("x" + std::to_string(ColCount - RowCount + i + 1));
     }
 }
 
@@ -59,9 +58,9 @@ TSimplex TSimplex::Algorithm() {
 
 TFraction TSimplex::GetResult() {
     for(int i = 0; i < RowCount - 1; ++i){
-        std::cout << BasisArray << " = " << Matrix[i][ColCount - 1];
+        std::cout << BasisArray[i] << " = " << Matrix[i][ColCount - 1] << " ";
     }
-    std::cout << "z = " << Matrix[RowCount - 1][ColCount - 1];
+    std::cout << "z = " << Matrix[RowCount - 1][ColCount - 1] << std::endl;
     return Matrix[RowCount - 1][ColCount - 1];
 }
 
@@ -69,18 +68,22 @@ vector<TFraction> TSimplex::AddEquation() {
     vector <TFraction> equation(ColCount);
     int indexRow = 0;
     int count = 0;
-    for(int i = 0; i < ColCount; ++i){
-        if(Matrix[indexRow][i].Numerator != 1)
+    for(int i = 0; i < ColCount; ++i) {
+        if(Matrix[indexRow][i].Denominator != 1)
             count++;
-        if(i == ColCount - 1 && count == 0){
+        if(i == ColCount - 1 && count == 0) {
             indexRow++;
             if(indexRow == RowCount) {
-                std::cout << "Нет решения"; exit(-1);
+                if(IsWhole()) {
+                    GetResult();
+                    exit(0);
+                }
+                std::cout << "No whole result"; exit(-1);
             }
             i = 0;
         }
     }
-    for(int i = 0; i < ColCount; i++){
+    for(int i = 0; i < ColCount; i++) {
         if(Matrix[indexRow][i].Denominator == 1 || Matrix[indexRow][i] == 0){
             equation[i] = 0;
         }
@@ -93,9 +96,12 @@ vector<TFraction> TSimplex::AddEquation() {
         if(equation[i] > example){
             equation[i] = equation[i] - equation[i].Numerator / equation[i].Denominator;
         }
+        if(equation[i].Sign == 1 && equation[i] < example) {
+            equation[i] = equation[i] + example;
+        }
     }
-    for(int i = 0; i < ColCount - 1; ++i){
-        if(equation[i] != 0) {
+    for(int i = 0; i < ColCount; ++i){
+        if(equation[i].Numerator != 0) {
             equation[i].Sign = !equation[i].Sign;
         }
     }
@@ -104,10 +110,12 @@ vector<TFraction> TSimplex::AddEquation() {
 
 TSimplex TSimplex::AddS(vector<TFraction> equation) {
     AddColRow();
-    for(int i = 0; i < ColCount; ++i){
+    for(int i = 0; i < ColCount - 2; ++i){
         Matrix[RowCount - 2][i] = equation[i];
     }
+    Matrix[RowCount - 2][ColCount - 1] = equation[ColCount - 2];
     Matrix[RowCount - 2][ColCount - 2] = 1;
+    BasisArray.push_back("x" + std::to_string(ColCount - 1));
     return *this;
 }
 
@@ -132,7 +140,7 @@ TSimplex TSimplex::AddColRow() {
 }
 
 TSimplex TSimplex::NewIterationTable() {
-    while(IsSimplex()) {
+    while(bool s = IsSimplex()) {
         NewTable();
     }
     return *this;
@@ -155,26 +163,38 @@ bool TSimplex::IsSimplex() {
             is = true;
         }
     }
+    for(int i = 0; i < RowCount; ++i) {
+        if(Matrix[i][ColCount - 1].Sign == 1) {
+            is = true;
+        }
+    }
     return is;
 }
 
 TSimplex TSimplex::NewTable() {
-
-    vector<vector<TFraction>> newMatrix = Matrix;
+    if(ColCount == 8)
+    {
+        bool f = true;
+    }
+    vector<vector<TFraction>> newMatrix;
+    newMatrix.resize(RowCount);
+    for(int i = 0; i < RowCount; ++i) {
+        newMatrix[i].resize(ColCount);
+    }
     int indexCol = 0, indexRow = 0;
     TFraction elem = FindElem(indexRow, indexCol);
+    if(elem.Denominator == -1) {
+        return *this;
+    }
     for (int i = 0; i < RowCount; ++i) {
         for (int j = 0; j < ColCount; ++j) {
-            if (i == indexRow && j != indexCol) {
+            if (i == indexRow) {
                 newMatrix[i][j] = Matrix[i][j] / elem;
                 continue;
             }
             if (j == indexCol && i != indexRow) {
                 newMatrix[i][j] = 0;
                 continue;
-            }
-            if (i == indexRow && j == indexCol) {
-                newMatrix[i][j] = 1;
             }
             newMatrix[i][j] = Matrix[i][j] - (Matrix[indexRow][j] * Matrix[i][indexCol] / elem);
         }
@@ -186,8 +206,11 @@ TSimplex TSimplex::NewTable() {
 TFraction TSimplex::FindElem(int& indexRow, int& indexCol) {
     bool twice = false;
     for(int i = 0; i < RowCount; ++i) {
-        if(Matrix[i][ColCount - 1].Sign == 1)
-            twice = true; break;
+        bool f = Matrix[i][ColCount - 1].Sign;
+        if(f == true) {
+            twice = true;
+            break;
+        }
     }
     if(twice){
         indexRow = FindTwiceRow();
@@ -196,30 +219,35 @@ TFraction TSimplex::FindElem(int& indexRow, int& indexCol) {
         indexCol = FindStandartCol();
         indexRow = FindStandartRow(indexCol);
     }
+    if(indexCol == -1 || indexRow == -1) {
+        std::cout << "error noone negative in simplex table";
+        TFraction flag(0, -1);
+        return flag;
+    }
     //меняем базисную пременную
     BasisArray[indexRow] = "x" +  std::to_string(indexCol + 1);
     return Matrix[indexRow][indexCol];
 }
 
 int TSimplex::FindStandartCol() {
-    int indexCol = 0;
-    TFraction max(0); //мах по модулю тк и так отрицательный
+    int indexCol = -1;
+    TFraction min(1000);
     for(int i = 0; i < ColCount; ++i){
-        if(Matrix[RowCount - 1][i].Sign == 1) {
-            if(Matrix[RowCount - 1][i] > max) {
-                max = Matrix[RowCount - 1][i];
-                indexCol = i;
-            }
+            if(Matrix[RowCount - 1][i].Sign == 1) {
+                if(Matrix[RowCount - 1][i] < min) {
+                    min = Matrix[RowCount - 1][i];
+                    indexCol = i;
+                }
         }
     }
     return indexCol;
 }
 
 int TSimplex::FindStandartRow(int indexCol) {
-    int indexRow = 0;
+    int indexRow = -1;
     TFraction min(1000);
-    for(int i = 0; i < RowCount; ++i){
-        if( Matrix[i][indexCol] != 0 &&  Matrix[i][indexCol].Sign != 1) {
+    for(int i = 0; i < RowCount - 1; ++i){
+        if( Matrix[i][indexCol].Numerator != 0 &&  Matrix[i][indexCol].Sign == false) {
             TFraction val = Matrix[i][ColCount - 1] / Matrix[i][indexCol];
             if (val < min) {
                 min = val;

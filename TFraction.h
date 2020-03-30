@@ -93,12 +93,21 @@ TFraction TFraction::operator+(TFraction operand) {
     int nok = GetNOK(this->Denominator, operand.Denominator);
     int k1 = nok / this->Denominator;
     int k2 = nok / operand.Denominator;
-    this->Numerator *= this->Sign ? -1 : 1;
-    operand.Numerator *= operand.Sign ? -1 : 1;
-    res.Numerator = this->Numerator * k1 + operand.Numerator * k2;
+    int num = this->Numerator; // чтобы не изменялся
+    num *= this->Sign ? -1 : 1;
+    operand.Numerator *= operand.Sign ? -1 : 1;// не изменяется тк копия
+    res.Numerator = num * k1 + operand.Numerator * k2;
     res.Denominator = nok;
+    if(res.Numerator < 0){
+        res.Numerator = abs(res.Numerator);
+        res.Sign = true;
+    }
     if(res.Numerator != 0) {
         res.GetSimple();
+    }
+    else {
+        res.Denominator = 1;
+        res.Sign = false;
     }
     return res;
 }
@@ -131,6 +140,7 @@ std::istream& operator>>(std::istream &in, TFraction& fraction) {
 TFraction& TFraction::operator=(TFraction operand) {
     this->Numerator = operand.Numerator;
     this->Denominator = operand.Denominator;
+    this->Sign = operand.Sign;
     return *this;
 }
 
@@ -151,18 +161,30 @@ TFraction TFraction::operator-(TFraction operand) {
     int nok = GetNOK(this->Denominator, operand.Denominator);
     int k1 = nok / this->Denominator;
     int k2 = nok / operand.Denominator;
-    this->Numerator *= this->Sign ? -1 : 1;
+    int num = this->Numerator;
+    num *= this->Sign ? -1 : 1;
     operand.Numerator *= operand.Sign ? -1 : 1;
-    res.Numerator = this->Numerator * k1 - operand.Numerator * k2;
+    res.Numerator = num * k1 - operand.Numerator * k2;
+    res.Denominator = nok;
+    if(res.Numerator < 0){
+        res.Numerator = abs(res.Numerator);
+        res.Sign = true;
+    }
     if(res.Numerator != 0) {
         res.GetSimple();
+    }
+    else {
+        res.Denominator = 1;
+        res.Sign = false;
     }
     return res;
 }
 
 TFraction TFraction::operator-(int integer) {
     TFraction res(0);
-    res.Numerator = this->Numerator - this->Denominator * integer;
+    int num = this->Numerator;
+    num *= this->Sign ? -1 : 1;
+    res.Numerator = num - this->Denominator * integer;
     res.Denominator = this->Denominator;
     if(res.Numerator < 0) {
         res.Sign = true;
@@ -175,30 +197,38 @@ TFraction TFraction::operator-(int integer) {
 
 TFraction TFraction::operator/(TFraction operand) {
     TFraction res(0);
-    if((this->Sign && operand.Sign) || (!this->Sign && !operand.Sign)) {
+    if((this->Sign && operand.Sign) || (!this->Sign && !operand.Sign) || operand.Numerator == 0) {
         res.Sign = false;
     } else {
         res.Sign = true;
     }
-    res.Numerator = this->Numerator * operand.Denominator;
+    res.Numerator = operand.Numerator == 0 ? 0 : this->Numerator * operand.Denominator;
     res.Denominator = operand.Numerator == 0 ? 1 : this->Denominator * operand.Numerator;
     if(res.Numerator != 0) {
         res.GetSimple();
+    }
+    else {
+        res.Denominator = 1;
+        res.Sign = false;
     }
     return res;
 }
 
 TFraction TFraction::operator*(TFraction operand) {
     TFraction res(0);
-    if((this->Sign && operand.Sign) || (!this->Sign && !operand.Sign)) {
+    if((this->Sign && operand.Sign) || (!this->Sign && !operand.Sign) || operand.Numerator == 0) {
         res.Sign = false;
     } else {
         res.Sign = true;
     }
     res.Numerator = this->Numerator * operand.Numerator;
-    res.Denominator = this->Denominator * operand.Denominator;
+    res.Denominator =  operand.Numerator == 0 ? 1 : this->Denominator * operand.Denominator;
     if(res.Numerator != 0) {
         res.GetSimple();
+    }
+    else {
+        res.Denominator = 1;
+        res.Sign = false;
     }
     return res;
 }
@@ -226,33 +256,37 @@ bool TFraction::operator!=(TFraction operand) {
 }
 
 bool TFraction::operator<(TFraction operand) {
-    this->Numerator *= this->Sign ? -1 : 1;
+    int num = this->Numerator;
+    num *= this->Sign ? -1 : 1;
     operand.Numerator *= operand.Sign ? -1 : 1;
-    double op1 = (double)this->Numerator / this->Denominator;
+    double op1 = (double)num / this->Denominator;
     double op2 = (double)operand.Numerator / operand.Denominator;
     return op1 < op2;
 }
 
 bool TFraction::operator>(TFraction operand) {
-    this->Numerator *= this->Sign ? -1 : 1;
+    int num = this->Numerator;
+    num *= this->Sign ? -1 : 1;
     operand.Numerator *= operand.Sign ? -1 : 1;
-    double op1 = (double)this->Numerator / this->Denominator;
+    double op1 = (double)num / this->Denominator;
     double op2 = (double)operand.Numerator / operand.Denominator;
     return op1 > op2;
 }
 
 bool TFraction::operator<=(TFraction operand) {
-    this->Numerator *= this->Sign ? -1 : 1;
+    int num = this->Numerator;
+    num *= this->Sign ? -1 : 1;
     operand.Numerator *= operand.Sign ? -1 : 1;
-    double op1 = (double)this->Numerator / this->Denominator;
+    double op1 = (double)num / this->Denominator;
     double op2 = (double)operand.Numerator / operand.Denominator;
     return op1 <= op2;
 }
 
 bool TFraction::operator>=(TFraction operand) {
-    this->Numerator *= this->Sign ? -1 : 1;
+    int num = this->Numerator;
+    num *= this->Sign ? -1 : 1;
     operand.Numerator *= operand.Sign ? -1 : 1;
-    double op1 = (double)this->Numerator / this->Denominator;
+    double op1 = (double)num / this->Denominator;
     double op2 = (double)operand.Numerator / operand.Denominator;
     return op1 >= op2;
 }
