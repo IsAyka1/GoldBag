@@ -1,3 +1,4 @@
 # GoldBag
-Task about bag. DP
-Предмет ИО. Задача об умном распределении в рюкзак
+Task about smart distribution in a backpack
+
+Предмет ИО.
